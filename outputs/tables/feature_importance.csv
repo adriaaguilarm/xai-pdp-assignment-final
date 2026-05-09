@@ -1,0 +1,12 @@
+dataset,feature,importance
+Daily bike rentals,days_since_2011,1807885.5329717812
+Daily bike rentals,temp,1447756.9858355303
+Daily bike rentals,yr,980536.2237324088
+Daily bike rentals,mnth,504406.03954408155
+Daily bike rentals,season,391132.38393511693
+Daily bike rentals,hum,282451.38486995135
+Daily bike rentals,weathersit,195192.8332695631
+Daily bike rentals,windspeed,92070.41910986093
+Daily bike rentals,weekday,32575.506378980943
+Daily bike rentals,workingday,20783.624353430292
+Daily bike rentals,holiday,872.4545069083648
