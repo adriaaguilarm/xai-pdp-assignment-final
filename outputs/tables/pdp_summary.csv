@@ -1,0 +1,5 @@
+dataset,analysis,feature_x,feature_y,grid_points,pdp_n,min_x,max_x,min_y,max_y,min_prediction,max_prediction,prediction_range
+Daily bike rentals,one-dimensional,days_since_2011,NA,50,50,0,730,NA,NA,3387.8110858900704,5203.544977929438,1815.7338920393672
+Daily bike rentals,one-dimensional,hum,NA,50,50,0,0.9725,NA,NA,3704.0490855434673,4615.074751294584,911.0256657511163
+Daily bike rentals,one-dimensional,temp,NA,50,50,0.0591304,0.861667,NA,NA,3314.8025400667957,5093.853393213813,1779.0508531470177
+Daily bike rentals,one-dimensional,windspeed,NA,50,50,0.0223917,0.507463,NA,NA,3979.813432427408,4576.820340978535,597.0069085511268
