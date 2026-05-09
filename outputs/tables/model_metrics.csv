@@ -1,2 +1,3 @@
 dataset,target,training_n,pdp_n,num_trees,mtry,min_node_size,oob_rmse,oob_r_squared
 Daily bike rentals,cnt,731,50,500,3,5,635.98001256505,0.8922213154769776
+King County house prices,price,1500,1500,500,2,5,218845.4715244968,0.6002107967549039

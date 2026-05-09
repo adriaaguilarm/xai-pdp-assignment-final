@@ -52,6 +52,16 @@ numeric_grid <- function(data, feature, grid_size = 50) {
   seq(observed_range[1], observed_range[2], length.out = grid_size)
 }
 
+unique_or_numeric_grid <- function(data, feature, grid_size = 50) {
+  observed_values <- sort(unique(data[[feature]]))
+
+  if (length(observed_values) <= grid_size) {
+    observed_values
+  } else {
+    numeric_grid(data, feature, grid_size)
+  }
+}
+
 pdp_1d <- function(model, sample_data, feature, grid_values, dataset) {
   bind_rows(lapply(grid_values, function(value) {
     modified_data <- sample_data
@@ -355,4 +365,99 @@ plot_pdp_2d(
   filename = "bike_pdp_2d_temperature_humidity_heatmap.png"
 )
 
-message("Exercises 1 and 2 complete.")
+# Exercise 3: one-dimensional PDPs for house prices
+house_raw <- read_csv(file.path(data_dir, "kc_house_data.csv"), show_col_types = FALSE)
+
+set.seed(2024)
+house_model_data <- house_raw %>%
+  select(price, bedrooms, bathrooms, sqft_living, sqft_lot, floors, yr_built) %>%
+  drop_na() %>%
+  slice_sample(n = 1500)
+
+house_features <- setdiff(names(house_model_data), "price")
+house_mtry <- max(1, floor(sqrt(length(house_features))))
+
+house_rf <- ranger(
+  formula = price ~ .,
+  data = house_model_data,
+  num.trees = rf_settings$num_trees,
+  mtry = house_mtry,
+  min.node.size = rf_settings$min_node_size,
+  importance = "permutation",
+  seed = 2024
+)
+
+house_pdp_features <- c("bedrooms", "bathrooms", "sqft_living", "floors")
+house_pdp_1d <- bind_rows(lapply(house_pdp_features, function(feature) {
+  pdp_1d(
+    model = house_rf,
+    sample_data = house_model_data,
+    feature = feature,
+    grid_values = unique_or_numeric_grid(house_model_data, feature),
+    dataset = "King County house prices"
+  )
+}))
+
+house_metrics <- model_metrics(
+  model = house_rf,
+  dataset = "King County house prices",
+  target = "price",
+  training_n = nrow(house_model_data),
+  pdp_n = nrow(house_model_data),
+  mtry = house_mtry
+)
+
+house_importance <- feature_importance(house_rf, "King County house prices")
+
+metrics <- bind_rows(bike_metrics, house_metrics)
+importance <- bind_rows(bike_importance, house_importance)
+pdp_summary <- bind_rows(
+  bike_pdp_summary,
+  pdp_summary_2d(bike_pdp_temp_hum_2d),
+  pdp_summary_1d(house_pdp_1d)
+)
+
+write_csv(metrics, file.path(tables_dir, "model_metrics.csv"))
+write_csv(importance, file.path(tables_dir, "feature_importance.csv"))
+write_csv(pdp_summary, file.path(tables_dir, "pdp_summary.csv"))
+write_csv(house_pdp_1d, file.path(tables_dir, "house_pdp_1d.csv"))
+
+plot_pdp_1d(
+  pdp_data = house_pdp_1d,
+  sample_data = house_model_data,
+  feature = "bedrooms",
+  title = "House Price PDP: Bedrooms",
+  x_label = "Bedrooms",
+  y_label = "Predicted price (USD)",
+  filename = "house_pdp_bedrooms.png"
+)
+
+plot_pdp_1d(
+  pdp_data = house_pdp_1d,
+  sample_data = house_model_data,
+  feature = "bathrooms",
+  title = "House Price PDP: Bathrooms",
+  x_label = "Bathrooms",
+  y_label = "Predicted price (USD)",
+  filename = "house_pdp_bathrooms.png"
+)
+
+plot_pdp_1d(
+  pdp_data = house_pdp_1d,
+  sample_data = house_model_data,
+  feature = "sqft_living",
+  title = "House Price PDP: Living Area",
+  x_label = "Living area (sqft)",
+  y_label = "Predicted price (USD)",
+  filename = "house_pdp_sqft_living.png"
+)
+
+plot_pdp_1d(
+  pdp_data = house_pdp_1d,
+  sample_data = house_model_data,
+  feature = "floors",
+  title = "House Price PDP: Floors",
+  x_label = "Floors",
+  y_label = "Predicted price (USD)",
+  filename = "house_pdp_floors.png"
+)
