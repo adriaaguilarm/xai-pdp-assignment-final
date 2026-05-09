@@ -67,6 +67,29 @@ pdp_1d <- function(model, sample_data, feature, grid_values, dataset) {
   }))
 }
 
+pdp_2d <- function(model, sample_data, feature_x, feature_y, grid_x, grid_y, dataset) {
+  grid <- expand_grid(
+    feature_x_value = grid_x,
+    feature_y_value = grid_y
+  )
+
+  bind_rows(lapply(seq_len(nrow(grid)), function(row_id) {
+    modified_data <- sample_data
+    modified_data[[feature_x]] <- grid$feature_x_value[row_id]
+    modified_data[[feature_y]] <- grid$feature_y_value[row_id]
+
+    tibble(
+      dataset = dataset,
+      feature_x = feature_x,
+      feature_y = feature_y,
+      feature_x_value = grid$feature_x_value[row_id],
+      feature_y_value = grid$feature_y_value[row_id],
+      prediction = mean(predict(model, data = modified_data)$predictions),
+      pdp_n = nrow(sample_data)
+    )
+  }))
+}
+
 pdp_summary_1d <- function(pdp_data) {
   pdp_data %>%
     group_by(dataset, feature) %>%
@@ -86,6 +109,25 @@ pdp_summary_1d <- function(pdp_data) {
       .groups = "drop"
     ) %>%
     select(dataset, analysis, feature_x, feature_y, grid_points, pdp_n, everything(), -feature)
+}
+
+pdp_summary_2d <- function(pdp_data) {
+  pdp_data %>%
+    group_by(dataset, feature_x, feature_y) %>%
+    summarise(
+      analysis = "two-dimensional",
+      grid_points = n(),
+      pdp_n = max(pdp_n),
+      min_x = min(feature_x_value),
+      max_x = max(feature_x_value),
+      min_y = min(feature_y_value),
+      max_y = max(feature_y_value),
+      min_prediction = min(prediction),
+      max_prediction = max(prediction),
+      prediction_range = max(prediction) - min(prediction),
+      .groups = "drop"
+    ) %>%
+    select(dataset, analysis, feature_x, feature_y, grid_points, pdp_n, everything())
 }
 
 theme_pdp <- function() {
@@ -138,6 +180,43 @@ plot_pdp_1d <- function(pdp_data, sample_data, feature, title, x_label, y_label,
     theme_pdp()
 
   save_plot(plot, filename)
+}
+
+plot_pdp_2d <- function(pdp_data, sample_data, filename) {
+  tile_width <- min(diff(sort(unique(pdp_data$feature_x_value))))
+  tile_height <- min(diff(sort(unique(pdp_data$feature_y_value))))
+
+  plot <- ggplot(pdp_data, aes(x = feature_x_value, y = feature_y_value, fill = prediction)) +
+    geom_tile(width = tile_width, height = tile_height) +
+    geom_rug(
+      data = sample_data,
+      aes(x = temp, y = hum),
+      inherit.aes = FALSE,
+      sides = "bl",
+      color = "#7a5c3f",
+      alpha = 0.75,
+      length = unit(0.035, "npc")
+    ) +
+    scale_fill_gradientn(
+      colours = c("#101820", "#1f3b73", "#3d73c7", "#7fb3ff"),
+      labels = comma,
+      name = "Predicted\nrentals"
+    ) +
+    scale_x_continuous(expand = expansion(mult = 0.01)) +
+    scale_y_continuous(expand = expansion(mult = 0.01)) +
+    labs(
+      title = "Bike Rentals 2D PDP: Normalized Temperature and Humidity",
+      subtitle = "Rugs show the 50 sampled observations used for PDP calculation",
+      x = "Normalized temperature (dataset scale)",
+      y = "Normalized humidity (dataset scale)"
+    ) +
+    theme_pdp() +
+    theme(
+      panel.grid = element_blank(),
+      legend.position = "right"
+    )
+
+  save_plot(plot, filename, width = 8.2, height = 5.3)
 }
 
 # Exercise 1: one-dimensional PDPs for bike rental demand
@@ -251,4 +330,29 @@ plot_pdp_1d(
   filename = "bike_pdp_windspeed.png"
 )
 
-message("Exercise 1 complete.")
+# Exercise 2: two-dimensional PDP for normalized temperature and humidity
+bike_pdp_temp_hum_2d <- pdp_2d(
+  model = bike_rf,
+  sample_data = bike_pdp_sample,
+  feature_x = "temp",
+  feature_y = "hum",
+  grid_x = numeric_grid(bike_model_data, "temp", grid_size = 25),
+  grid_y = numeric_grid(bike_model_data, "hum", grid_size = 25),
+  dataset = "Daily bike rentals"
+)
+
+pdp_summary <- bind_rows(
+  bike_pdp_summary,
+  pdp_summary_2d(bike_pdp_temp_hum_2d)
+)
+
+write_csv(pdp_summary, file.path(tables_dir, "pdp_summary.csv"))
+write_csv(bike_pdp_temp_hum_2d, file.path(tables_dir, "bike_pdp_temp_hum_2d.csv"))
+
+plot_pdp_2d(
+  pdp_data = bike_pdp_temp_hum_2d,
+  sample_data = bike_pdp_sample,
+  filename = "bike_pdp_2d_temperature_humidity_heatmap.png"
+)
+
+message("Exercises 1 and 2 complete.")
