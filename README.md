@@ -1,5 +1,7 @@
 # XAI Partial Dependence Analysis
 
+## Authors: Adrià Aguilar, Santiago Font, Pablo Gandía
+
 This repository contains an ordered solution for the Partial Dependence Plot assignment. The main R script follows the exercise sequence from the PDF:
 
 1. One-dimensional PDPs for daily bike rental demand.
