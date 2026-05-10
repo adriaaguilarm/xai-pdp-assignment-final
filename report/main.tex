@@ -10,14 +10,14 @@
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{0.6em}
 
-\title{Business Interpretation of Random Forest Partial Dependence Plots}
-\author{Explainable AI Assignment}
+\title{Interpretation of Random Forest Partial Dependence Plots}
+\author{Explainable AI}
 \date{\today}
 
 \begin{document}
 \maketitle
 
-\section{Executive Summary}
+\section{Summary}
 
 This report explains two random forest regression models using Partial Dependence Plots (PDPs). The first model predicts daily bike rentals from calendar and normalized weather data. The second model predicts King County house prices from a focused set of property characteristics.
 
@@ -44,7 +44,7 @@ King County house prices & 1500 & 1500 & 500 & 218845.5 & 0.600 \\
 \end{tabular}
 \end{table}
 
-The bike rental model uses all available daily records for training and exactly 50 sampled observations for PDP calculation. The target is \texttt{cnt}. The weather axes in the bike PDPs use the original normalized dataset scales: \texttt{temp}, \texttt{hum}, and \texttt{windspeed}. They are not converted to degrees, percentages, or physical windspeed units.
+The bike rental model uses all available daily records for training and 50 sampled observations for PDP calculation. The target is \texttt{cnt}. The weather axes in the bike PDPs use the original normalized dataset scales: \texttt{temp}, \texttt{hum}, and \texttt{windspeed}. 
 
 The house price model uses 1500 sampled complete observations for both model training and PDP calculation. The target is \texttt{price}. The selected predictors are \texttt{bedrooms}, \texttt{bathrooms}, \texttt{sqft\_living}, \texttt{sqft\_lot}, \texttt{floors}, and \texttt{yr\_built}.
 
@@ -60,27 +60,27 @@ The house price model uses 1500 sampled complete observations for both model tra
 \includegraphics[width=0.46\textwidth]{bike_pdp_humidity.png} &
 \includegraphics[width=0.46\textwidth]{bike_pdp_windspeed.png}
 \end{tabular}
-\caption{One-dimensional PDPs for daily bike rental demand. Weather variables are shown on normalized dataset scales. Rugs show the exact 50 sampled PDP observations.}
+\caption{One-dimensional PDPs for daily bike rental demand.}
 \end{figure}
 
 \textbf{Days since 2011.}
-The model predicts materially higher daily rental volume later in the period. Predicted demand rises from roughly 3400 rentals at the start of the series to more than 5200 at the high end of the PDP. For a bike rental operator, this suggests a strong structural growth pattern across the observed period. Capacity planning, maintenance staffing, and inventory allocation should therefore account for a rising baseline demand level rather than relying only on weather conditions.
+The model predicts materially higher daily rental volume later in the period. Predicted demand rises from roughly 3,400 rentals at the start of the series to more than 5,200 at the high end of the PDP. For a bike rental operator, this suggests a strong structural growth pattern across the observed period. Capacity planning, maintenance staffing, and inventory allocation should therefore account for a rising baseline demand level rather than relying only on weather conditions.
 
-\textbf{Temperature, normalized.}
-Temperature is one of the strongest weather drivers in the model. Predicted rentals increase sharply as normalized temperature moves from cold values toward the 0.5 to 0.7 range. Above that range, the PDP flattens and then declines slightly. Operationally, moderate-to-warm days should be treated as high-demand days, while the hottest normalized values do not continue to add demand at the same rate.
+\textbf{Temperature.}
+Temperature is one of the strongest weather drivers in the model. Predicted rentals increase sharply as temperature moves from cold values toward the higher range. Above that range, the PDP flattens and then declines slightly. Operationally, moderate-to-warm days should be treated as high-demand days, while the hottest normalized values do not continue to add demand at the same rate.
 
-\textbf{Humidity, normalized.}
-Humidity has a negative business signal at higher values. The PDP is comparatively stable through moderate humidity, but predicted rentals fall as normalized humidity approaches the upper range. This suggests that very humid days should be planned with more conservative rental expectations, even if temperature is otherwise favorable.
+\textbf{Humidity.}
+Humidity has a negative business signal at higher values. The PDP is comparatively stable through moderate humidity, but predicted rentals fall as humidity approaches the upper range. This suggests that very humid days should be planned with more conservative rental expectations, even if temperature is otherwise favorable.
 
-\textbf{Wind speed, normalized.}
-The windspeed PDP shows lower predicted rentals at higher normalized windspeed values. The effect is smaller than temperature but still operationally relevant. Windy days can reduce casual usage and should be considered in short-term demand forecasts.
+\textbf{Wind speed.}
+The windspeed PDP shows lower predicted rentals at higher windspeed values. The effect is smaller than temperature but still operationally relevant. Windy days can reduce casual usage and should be considered in short-term demand forecasts.
 
 \subsection{Two-Dimensional PDP Result}
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.92\textwidth]{bike_pdp_2d_temperature_humidity_heatmap.png}
-\caption{Two-dimensional PDP for normalized temperature and normalized humidity. Marginal rugs show the exact 50 PDP observations.}
+\caption{Two-dimensional PDP for temperature and humidity.}
 \end{figure}
 
 The two-dimensional PDP confirms that temperature and humidity should be interpreted together. The highest predicted rentals occur at warmer normalized temperatures with low-to-moderate humidity. Cold and humid combinations are the weakest region. The heatmap therefore supports weather-aware planning: favorable temperature alone is not enough if humidity is very high.
@@ -104,17 +104,17 @@ The two-dimensional PDP confirms that temperature and humidity should be interpr
 Bedrooms have a relatively small marginal effect in this model. Predicted price changes only modestly across the observed bedroom grid compared with the effects of living area and bathrooms. For valuation work, bedroom count should not be interpreted in isolation; its value depends heavily on the size and quality characteristics represented by other variables.
 
 \textbf{Bathrooms.}
-Bathrooms show a positive relationship with predicted price. The PDP rises from about \$497000 at the low end to about \$832000 at the high end. In business terms, this suggests bathrooms are a meaningful property value signal, likely because they proxy for both functionality and higher-end property layouts.
+Bathrooms show a positive relationship with predicted price. The PDP rises from about \$497,000 at the low end to about \$832,000 at the high end. In business terms, this suggests bathrooms are a meaningful property value signal, likely because they proxy for both functionality and higher-end property layouts.
 
 \textbf{Living area.}
-Living area is the clearest price driver. The PDP increases strongly from smaller homes to larger homes, with predicted price rising by more than \$800000 across the plotted range. This is the most actionable property feature in the selected model: pricing, appraisal review, and customer segmentation should prioritize living area before interpreting room counts.
+Living area is the clearest price driver. The PDP increases strongly from smaller homes to larger homes, with predicted price rising by more than \$800,000 across the plotted range. This is the most actionable property feature in the selected model: pricing, appraisal review, and customer segmentation should prioritize living area before interpreting room counts.
 
 \textbf{Floors.}
 Floors have a moderate positive marginal effect. Predicted price is higher for multi-floor homes, but the range is much smaller than for living area. This suggests that floors may reflect style, location, or layout preferences, but it is not the primary pricing lever in this feature set.
 
-\section{Business Conclusions}
+\section{Conclusions}
 
-For the bike rental business, the model supports three planning rules. First, demand has a strong upward time trend in the observed period. Second, normalized temperature is a major demand driver, with the best predicted performance at moderate-to-warm values. Third, high humidity and high windspeed should reduce short-term demand expectations. The two-dimensional PDP adds that warm weather is most valuable when humidity is not high.
+For the bike rental business, the model supports three planning rules. First, demand has a strong upward time trend in the observed period. Second,  temperature is a major demand driver, with the best predicted performance at moderate-to-warm values. Third, high humidity and high windspeed should reduce short-term demand expectations. The two-dimensional PDP adds that warm weather is most valuable when humidity is not high.
 
 For the house price business, the model supports a space-first valuation view. Living area dominates the selected feature set, bathrooms add a meaningful premium, and bedrooms contribute much less once the other features are held in the model. This helps avoid over-weighting bedroom count in pricing decisions when the underlying square footage does not support a higher valuation.
 
@@ -129,6 +129,5 @@ The repository is organized as follows:
 \item Report: \texttt{report/main.tex} and \texttt{report/main.pdf}
 \end{itemize}
 
-The script is ordered according to the assignment exercises. To run it, execute the R script from the repository root and then compile the LaTeX report with \texttt{latexmk}.
 
 \end{document}
